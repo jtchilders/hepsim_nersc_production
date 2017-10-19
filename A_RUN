@@ -1,0 +1,37 @@
+#!/bin/bash -l
+
+function get_rand()
+{
+   echo $(python -c 'import random;print(random.randint(0,9e8))')
+}
+
+INPUT=$1
+OUTPUT=$2
+NUM_EVENTS=$3
+RANDNUM=$(get_rand)
+JOBDIR=$(dirname $OUTPUT)
+TASKDIR=$(dirname $JOBDIR)
+RANDFILE=$TASKDIR/randomseeds.txt
+
+echo INPUT=$INPUT
+echo OUTPUT=$OUTPUT
+echo NUM_EVENTS=$NUM_EVENTS
+echo RANDNUM=$RANDNUM
+echo JOBDIR=$JOBDIR
+echo TASKDIR=$TASKDIR
+echo RANDFILE=$RANDFILE
+
+echo [$SECONDS] running setup
+source ./setup.sh
+
+# check to see if random number has already been used
+while grep -Fxq "$RANDNUM" $RANDFILE; do
+   RANDNUM=$(get_rand)
+done
+
+echo $RANDNUM $NUM_EVENTS $OUTPUT >> $RANDFILE
+
+echo [$SECONDS] starting run
+./main.exe $INPUT $OUTPUT $NUM_EVENTS $RANDNUM
+echo [$SECONDS] Done: $?
+
